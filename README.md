@@ -42,6 +42,7 @@ Here is the list of the supported open source serverless frameworks.
  - [Gestalt](http://www.galacticfog.com/product/)
  - [Riff](https://github.com/projectriff/riff)
  - [Fn](https://github.com/fnproject/fn)
+ - [OpenWhisk](https://openwhisk.apache.org/)
 
 ### Kubernetes Distributions
 
