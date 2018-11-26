@@ -23,7 +23,7 @@ Now edit the `hello-world-http.yml` file as follows:
 ```
 provider:
   name: faas
-  gateway: http://$DOCKER_EE_IP:33000
+  gateway: http://$UCP_HOST:33000
 
 functions:
   hello-world:
@@ -37,13 +37,15 @@ where `$DOCKER_EE_IP` is your docker ee ip and `$DOCKER_HUB_USERNAME` is your Do
 Finally, here is how to build, ship and deploy the function:
 
 ```
+gateway=http://$UCP_HOST:33000
+faas-cli login -u admin --password $password --gateway $gateway
 faas-cli build -f hello-world-http.yml
 faas-cli push -f hello-world-http.yml
-faas-cli deploy -f hello-world-http.yml
+faas-cli deploy -f hello-world-http.yml --gateway $gateway
 ```
 
 Finally, invoke your function:
 
 ```
-curl http://34.221.85.65:33000/function/hello-world-http -X POST -H "Content-Type: application/json" -d '{"name": "jules"}'
+faas-cli invoke hello-world --gateway $gateway
 ```

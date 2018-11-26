@@ -35,6 +35,7 @@ This is will initialize the Tiller component. Before continuing, wait until the 
 Next, setup a kube secret to enable OpenFaaS basic authentication.
 
 ```
+helm repo add openfaas https://openfaas.github.io/faas-netes/
 PASSWORD=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 kubectl -n openfaas create secret generic basic-auth \
 --from-literal=basic-auth-user=admin \
