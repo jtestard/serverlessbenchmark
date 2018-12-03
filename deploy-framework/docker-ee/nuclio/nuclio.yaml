@@ -16,7 +16,6 @@
 
 # Define a "function" custom resource definition - extending the k8s API to allow management of "function" resources
 apiVersion: apiextensions.k8s.io/v1beta1
-description: Function resource
 kind: CustomResourceDefinition
 metadata:
   name: functions.nuclio.io
@@ -33,7 +32,6 @@ spec:
 
 # Define a "project" custom resource definition - extending the k8s API to allow management of "project" resources
 apiVersion: apiextensions.k8s.io/v1beta1
-description: Project resource
 kind: CustomResourceDefinition
 metadata:
   name: projects.nuclio.io
@@ -50,7 +48,6 @@ spec:
 
 # Define a "functionevent" custom resource definition - extending the k8s API to allow management of "functionevent" resources
 apiVersion: apiextensions.k8s.io/v1beta1
-description: Function event resource
 kind: CustomResourceDefinition
 metadata:
   name: functionevents.nuclio.io
@@ -62,6 +59,34 @@ spec:
     singular: functionevent
   scope: Namespaced
   version: v1beta1
+
+---
+
+# All Nuclio services are bound to the "nuclio" service account. In RBAC enabled setups, this service account is
+# bound to specific roles limiting what the services can do
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nuclio
+  namespace: nuclio
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  creationTimestamp: 2018-11-27T02:01:18Z
+  labels:
+    subjectName: nuclio-nuclio
+  name: nuclio-nuclio:cluster-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: nuclio
+  namespace: nuclio
 
 ---
 
@@ -81,71 +106,19 @@ spec:
         nuclio.io/app: controller
         nuclio.io/class: service
       annotations:
-        nuclio.io/version: 0.5.2
+        nuclio.io/version: 0.5.14
     spec:
       containers:
       - name: nuclio-controller
-        image: nuclio/controller:0.5.2-amd64
+        image: nuclio/controller:0.5.14-amd64
         env:
         - name: NUCLIO_CONTROLLER_IMAGE_PULL_SECRETS
           value: registry-credentials
+      serviceAccountName: nuclio
 
 ---
 
-# The nuclio playground is an ephemeral UI to try out functions. It is insecure in nature - a fully fledged UI
-# is in the works
-apiVersion: apps/v1beta1
-kind: Deployment
-metadata:
-  name: nuclio-playground
-  namespace: nuclio
-spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        nuclio.io/env: test
-        nuclio.io/app: playground
-        nuclio.io/class: service
-      annotations:
-        nuclio.io/version: 0.5.2
-    spec:
-      containers:
-      - name: nuclio-playground
-        image: nuclio/playground:0.5.2-amd64
-        ports:
-        - containerPort: 8070
-        volumeMounts:
-        - mountPath: /var/run/docker.sock
-          name: docker-sock
-        - name: registry-credentials
-          mountPath: "/etc/nuclio/playground/registry-credentials"
-          readOnly: true
-      volumes:
-      - name: docker-sock
-        hostPath:
-          path: /var/run/docker.sock
-      - name: registry-credentials
-        secret:
-          secretName: registry-credentials
-          optional: true
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nuclio-playground
-  namespace: nuclio
-spec:
-  selector:
-    nuclio.io/app: playground
-  ports:
-  - name: admin
-    port: 8070
-    protocol: TCP
-
----
-
-# The nuclio dashboard is a WIP replacement for the playground
+# The Nuclio dashboard offers a UI to manage functions
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
@@ -160,11 +133,11 @@ spec:
         nuclio.io/app: dashboard
         nuclio.io/class: service
       annotations:
-        nuclio.io/version: 0.5.2
+        nuclio.io/version: 0.5.14
     spec:
       containers:
       - name: nuclio-dashboard
-        image: nuclio/dashboard:0.5.2-amd64
+        image: nuclio/dashboard:0.5.14-amd64
         ports:
         - containerPort: 8070
         volumeMounts:
@@ -181,6 +154,7 @@ spec:
         secret:
           secretName: registry-credentials
           optional: true
+      serviceAccountName: nuclio
 ---
 apiVersion: v1
 kind: Service
@@ -193,5 +167,6 @@ spec:
     nuclio.io/app: dashboard
   ports:
   - name: admin
+    nodePort: 33000
     port: 8070
     protocol: TCP

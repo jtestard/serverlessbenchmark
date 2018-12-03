@@ -11,12 +11,12 @@
 The Golang HTTP template is a runtime for openfaas geared towards speeding up function invocation latency.
 
 ```
-mkdir hello-world-http && cd hello-world-http
+mkdir simple-auth && cd simple-auth
 faas-cli template pull https://github.com/openfaas-incubator/golang-http-template
-faas-cli new --lang golang-http hello-world-http
+faas-cli new --lang go simple-auth
 ```
 
-Now edit the `hello-world-http.yml` file as follows:
+Now edit the `simple-auth.yml` file as follows:
 
 ```
 provider:
@@ -26,8 +26,8 @@ provider:
 functions:
   hello-world:
     lang: golang-http
-    handler: ./hello-world-http
-    image: $DOCKER_HUB_USERNAME/hello-world-http
+    handler: ./simple-auth
+    image: $DOCKER_HUB_USERNAME/simple-auth
 ```
 
 where `$DOCKER_EE_IP` is your docker ee ip and `$DOCKER_HUB_USERNAME` is your Docker Hub username.
@@ -37,13 +37,13 @@ Finally, here is how to build, ship and deploy the function:
 ```
 gateway=http://$UCP_HOST:33000
 faas-cli login -u admin --password $password --gateway $gateway
-faas-cli build -f hello-world-http.yml
-faas-cli push -f hello-world-http.yml
-faas-cli deploy -f hello-world-http.yml --gateway $gateway
+faas-cli build -f simple-auth.yml
+faas-cli push -f simple-auth.yml
+faas-cli deploy -f simple-auth.yml --gateway $gateway
 ```
 
 Finally, invoke your function:
 
 ```
-faas-cli invoke hello-world --gateway $gateway
+faas-cli invoke simple-auth --gateway $gateway
 ```

@@ -23,12 +23,20 @@ kubectl create secret docker-registry registry-credentials --namespace nuclio \
     --docker-email ignored@nuclio.io
 ```
 
-Grant the following Docker EE permissions by using this [guide](https://docs.docker.com/ee/ucp/authorization/grant-permissions/):
+You can then do:
 
-| Namespace   	| Service Account 	| Role               	| Resource Set         	|
-|-------------	|-----------------	|--------------------	|----------------------	|
-| default     	| default         	| Restricted Control 	| kubernetesnamespaces 	|
-| nuclio      	| default         	| Full Control      	| kubernetesnamespaces 	|
+```
+kubectl -n kube-system create sa tiller \
+ && kubectl create clusterrolebinding tiller \
+      --clusterrole cluster-admin \
+      --serviceaccount=kube-system:tiller
+
+helm init --skip-refresh --upgrade --service-account tiller
+```
+
+This is will initialize the Tiller component. Before continuing, wait until the output of `helm version` includes a server version in addition to the client's.
+
+Now install nuclio:
 
 ```
 kubectl apply -f nuclio.yaml
